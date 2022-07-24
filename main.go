@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	h "github.com/AntonyIS/todo-app-one/api"
+	h "github.com/AntonyIS/todo-app-one/api/http"
 	"github.com/AntonyIS/todo-app-one/app"
 	rd "github.com/AntonyIS/todo-app-one/repository/redis"
 	"github.com/gin-gonic/gin"
@@ -38,10 +38,11 @@ func port() string {
 }
 
 func repo() app.TodoRepository {
-	repo, err := rd.NewRedisRepository("redis://localhost:6379")
+
+	repo, err := rd.NewRedisRepository("redis://redis:6379")
 
 	if err != nil {
-		log.Fatal("redis server not connected")
+		log.Fatal("redis server not connected: ", err)
 		return nil
 	}
 	return repo

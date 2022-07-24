@@ -3,6 +3,7 @@ package redis
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/AntonyIS/todo-app-one/app"
 
@@ -10,15 +11,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-func init() {
-	fmt.Println("TEST")
-}
-
 type redisRepository struct {
 	client *redis.Client
 }
 
-func newRedisClient(redisURL, redisKey string) (*redis.Client, error) {
+func newRedisClient(redisURL string) (*redis.Client, error) {
 
 	opts, err := redis.ParseURL(redisURL)
 	if err != nil {
@@ -36,7 +33,7 @@ func newRedisClient(redisURL, redisKey string) (*redis.Client, error) {
 func NewRedisRepository(redisURL string) (app.TodoRepository, error) {
 	repo := &redisRepository{}
 
-	client, err := newRedisClient(redisURL, "all_todos")
+	client, err := newRedisClient(redisURL)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "todo.NewRedisReposiory")
@@ -56,7 +53,7 @@ func (r redisRepository) Create(todo *app.Todo) (*app.Todo, error) {
 	}
 	rawmsg, err := json.Marshal(data)
 	if err != nil {
-		fmt.Println("ERROR MARSHALLING")
+		log.Fatal("ERROR MARSHALLING")
 	}
 
 	d, err := r.client.HSet("todos", todo.ID, rawmsg).Result()
