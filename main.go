@@ -41,7 +41,7 @@ func port() string {
 
 func repo() app.TodoRepository {
 
-	repo, err := rd.NewRedisRepository("redis://localhost:6379")
+	repo, err := rd.NewRedisRepository("redis://redis:6379")
 
 	if err != nil {
 		log.Fatal("redis server not connected: ", err)
