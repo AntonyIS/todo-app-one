@@ -34,16 +34,16 @@ type userRepository struct {
 }
 
 func newPostgresClient() (*sql.DB, error) {
-	conn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=verify-full", host, port, user, password, dbname)
+	conn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=verify-full", host, port, user, password, dbname)
 	db, err := sql.Open("postgres", conn)
 	if err != nil {
-		log.Fatalf("ERROR ACESSING DB :", err)
+		log.Fatalf("ERROR ACESSING DB :%s", err)
 
 	}
 	err = db.Ping()
 
 	if err != nil {
-		log.Fatalf("ERROR CONNECTING TO DB :", err)
+		log.Fatalf("ERROR CONNECTING TO DB :%s", err)
 	}
 	return db, nil
 }
@@ -60,7 +60,8 @@ func NewPostgresRepository() (app.UserRepository, error) {
 }
 
 func (u userRepository) Create(user *app.User) (*app.User, error) {
-	insert := fmt.Sprintf("INSERT INTO %s values ('%s','%s','%s','%s','%s','%s','%s');", os.Getenv("TABLENAME"), user.ID, user.FirstName, user.LastName, user.Email, user.Password, user.Avater, user.Todo)
+	insert := fmt.Sprintf("INSERT INTO %s values ('%s','%s','%s','%s','%s','%s');", tableName, user.ID, user.FirstName, user.LastName, user.Email, user.Password, user.Avater)
+	defer u.client.Close()
 	_, err := u.client.Exec(insert)
 	if err != nil {
 		return nil, errors.Wrap(err, "user.Create")
@@ -69,8 +70,9 @@ func (u userRepository) Create(user *app.User) (*app.User, error) {
 }
 
 func (u userRepository) Read(id string) (*app.User, error) {
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", os.Getenv("TABLENAME"), id)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", tableName)
 	user := &app.User{}
+	defer u.client.Close()
 	row := u.client.QueryRow(query, id)
 
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Avater, &user.Todo)
@@ -93,8 +95,9 @@ func (u userRepository) Read(id string) (*app.User, error) {
 }
 
 func (u userRepository) ReadAll() (*[]app.User, error) {
-	query := fmt.Sprintf("SELECT * FROM %s", os.Getenv("TABLENAME"))
+	query := fmt.Sprintf("SELECT * FROM %s", tableName)
 	users := []app.User{}
+	defer u.client.Close()
 	rows, err := u.client.Query(query)
 	if err != nil {
 		return nil, errors.Wrap(err, "user.ReadAll")
@@ -118,8 +121,8 @@ func (u userRepository) ReadAll() (*[]app.User, error) {
 }
 
 func (u userRepository) Update(user *app.User) (*app.User, error) {
-	query := fmt.Sprintf("UPDATE %s SET firstname=$2, lastname=$3 email=$4 avater=$4")
-
+	query := `UPDATE %s SET firstname=$2, lastname=$3 email=$4 avater=$4`
+	defer u.client.Close()
 	_, err := u.client.Exec(query, user.FirstName, user.LastName, user.Email, user.Avater)
 
 	if err != nil {
@@ -130,7 +133,8 @@ func (u userRepository) Update(user *app.User) (*app.User, error) {
 }
 
 func (u userRepository) Delete(id string) error {
-	query := fmt.Sprintf(`DELETE FROM %s WHERE id=$1`, os.Getenv("TABLENAME"))
+	query := fmt.Sprintf(`DELETE FROM %s WHERE id=$1`, tableName)
+	defer u.client.Close()
 	_, err := u.client.Exec(query, id)
 
 	if err != nil {

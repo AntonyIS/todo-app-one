@@ -5,28 +5,40 @@ import (
 	"os"
 
 	h "github.com/AntonyIS/todo-app-one/api/http"
-	todoSvc "github.com/AntonyIS/todo-app-one/app/core"
+	svc "github.com/AntonyIS/todo-app-one/app/core"
+	"github.com/gorilla/mux"
 
 	"github.com/AntonyIS/todo-app-one/app"
+	pq "github.com/AntonyIS/todo-app-one/repository/postgresql"
 	rd "github.com/AntonyIS/todo-app-one/repository/redis"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 
-	repo := repo()
-	service := todoSvc.NewTodoService(repo)
-	handler := h.NewHandler(service)
+	todoRepo := todoRepo()
+	todoService := svc.NewTodoService(todoRepo)
+	todoHandler := h.NewHandler(todoService)
 
-	r := gin.Default()
+	userRepo := userRepo()
+	userService := svc.NewUserService(userRepo)
+	userHandler := h.NewUserHandler(userService)
 
-	r.POST("/", handler.Create)
-	r.GET("/:id", handler.Read)
-	r.GET("/", handler.Index)
-	r.PUT("/", handler.Update)
-	r.DELETE("/:id", handler.Delete)
+	ginRouter := gin.Default()
+	muxRouter := mux.NewRouter()
+	ginRouter.POST("/", todoHandler.Create)
+	ginRouter.GET("/:id", todoHandler.Read)
+	ginRouter.GET("/", todoHandler.Index)
+	ginRouter.PUT("/", todoHandler.Update)
+	ginRouter.DELETE("/:id", todoHandler.Delete)
 
-	r.Run(port())
+	muxRouter.HandleFunc("/", userHandler.CreateUser)
+	muxRouter.HandleFunc("/:id", userHandler.ReadUser)
+	muxRouter.HandleFunc("/", userHandler.ReadAllUsers)
+	muxRouter.HandleFunc("/", userHandler.UpdateUser)
+	muxRouter.HandleFunc("/:id", userHandler.DeleteUser)
+
+	ginRouter.Run(port())
 
 }
 
@@ -39,9 +51,20 @@ func port() string {
 	return port
 }
 
-func repo() app.TodoRepository {
+func todoRepo() app.TodoRepository {
 
-	repo, err := rd.NewRedisRepository("redis://redis:6379")
+	repo, err := rd.NewRedisRepository("redis://localhost:6379")
+
+	if err != nil {
+		log.Fatal("redis server not connected: ", err)
+		return nil
+	}
+	return repo
+}
+
+func userRepo() app.UserRepository {
+
+	repo, err := pq.NewPostgresRepository()
 
 	if err != nil {
 		log.Fatal("redis server not connected: ", err)
