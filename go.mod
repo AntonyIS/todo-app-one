@@ -5,6 +5,8 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/redis v6.15.9+incompatible
+	github.com/joho/godotenv v1.4.0
+	github.com/lib/pq v1.10.6
 	github.com/pkg/errors v0.9.1
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569
 )
