@@ -5,6 +5,8 @@ import (
 	"os"
 
 	h "github.com/AntonyIS/todo-app-one/api/http"
+	todoSvc "github.com/AntonyIS/todo-app-one/app/core"
+
 	"github.com/AntonyIS/todo-app-one/app"
 	rd "github.com/AntonyIS/todo-app-one/repository/redis"
 	"github.com/gin-gonic/gin"
@@ -13,7 +15,7 @@ import (
 func main() {
 
 	repo := repo()
-	service := app.NewTodoService(repo)
+	service := todoSvc.NewTodoService(repo)
 	handler := h.NewHandler(service)
 
 	r := gin.Default()
@@ -39,7 +41,7 @@ func port() string {
 
 func repo() app.TodoRepository {
 
-	repo, err := rd.NewRedisRepository("redis://redis:6379")
+	repo, err := rd.NewRedisRepository("redis://localhost:6379")
 
 	if err != nil {
 		log.Fatal("redis server not connected: ", err)

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/AntonyIS/todo-app-one/app"
+	"github.com/AntonyIS/todo-app-one/app/core"
 
 	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
@@ -70,12 +71,12 @@ func (r redisRepository) Read(id string) (*app.Todo, error) {
 	todos, err := r.client.HGetAll("todos").Result()
 
 	if err != nil {
-		return nil, errors.Wrap(app.ErrInvalidTodo, "repository.Todo.Read")
+		return nil, errors.Wrap(core.ErrInvalidTodo, "repository.Todo.Read")
 	}
 	todo := &app.Todo{}
 	err = json.Unmarshal([]byte(todos[id]), todo)
 	if err != nil {
-		return nil, errors.Wrap(app.ErrInvalidTodo, "repository.Todo.Read")
+		return nil, errors.Wrap(core.ErrInvalidTodo, "repository.Todo.Read")
 	}
 
 	return todo, nil
@@ -96,7 +97,7 @@ func (r redisRepository) ReadAll() (*[]app.Todo, error) {
 		res := app.Todo{}
 		err := json.Unmarshal([]byte(todo), &res)
 		if err != nil {
-			return nil, errors.Wrap(app.ErrInvalidTodo, "repository.Todo.ReadAll")
+			return nil, errors.Wrap(core.ErrInvalidTodo, "repository.Todo.ReadAll")
 		}
 		todos = append(todos, res)
 	}
@@ -108,13 +109,13 @@ func (r redisRepository) Update(todo *app.Todo) (*app.Todo, error) {
 	todos, err := r.client.HGetAll("todos").Result()
 
 	if err != nil {
-		return nil, errors.Wrap(app.ErrInvalidTodo, "repository.Todo.Update")
+		return nil, errors.Wrap(core.ErrInvalidTodo, "repository.Todo.Update")
 	}
 	res := &app.Todo{}
 	err = json.Unmarshal([]byte(todos[todo.ID]), res)
 
 	if err != nil {
-		return nil, errors.Wrap(app.ErrInvalidTodo, "repository.Todo.Update")
+		return nil, errors.Wrap(core.ErrInvalidTodo, "repository.Todo.Update")
 	}
 
 	res.Title = todo.Title
@@ -122,7 +123,7 @@ func (r redisRepository) Update(todo *app.Todo) (*app.Todo, error) {
 
 	rawmsg, err := json.Marshal(res)
 	if err != nil {
-		return nil, errors.Wrap(app.ErrInvalidTodo, "repository.Todo.Update")
+		return nil, errors.Wrap(core.ErrInvalidTodo, "repository.Todo.Update")
 	}
 
 	found, err := r.client.HSet("todos", todo.ID, rawmsg).Result()

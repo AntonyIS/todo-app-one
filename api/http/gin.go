@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/AntonyIS/todo-app-one/app"
+	"github.com/AntonyIS/todo-app-one/app/core"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -85,7 +87,7 @@ func (h *handler) Update(c *gin.Context) {
 	var todo app.Todo
 	if err := c.ShouldBindJSON(&todo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"err": app.ErrInvalidTodo,
+			"err": core.ErrInvalidTodo,
 		})
 
 		return
@@ -93,7 +95,7 @@ func (h *handler) Update(c *gin.Context) {
 	updatedTodo, err := h.todoService.Update(&todo)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"err": app.ErrInvalidTodo,
+			"err": core.ErrInvalidTodo,
 		})
 		return
 	}
@@ -108,7 +110,7 @@ func (h *handler) Delete(c *gin.Context) {
 	todoID := c.Param("id")
 	if err := h.todoService.Delete(todoID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"err": app.ErrInvalidTodo,
+			"err": core.ErrInvalidTodo,
 		})
 		return
 	}
